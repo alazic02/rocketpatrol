@@ -60,6 +60,8 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100
         }
+
+        //score display
         this.scoreLeft = this.add.text(69, 54, this.p1Score, scoreConfig);
 
         //game over flag
@@ -67,9 +69,10 @@ class Play extends Phaser.Scene {
 
         //60-second play clock
         scoreConfig.fixedWidth = 0;
-        this.clock = this.time.delayedCall(60000, () => { //calls function after delay; time in milliseconds
+        this.clock = this.time.delayedCall(game.settings.gameTimer, () => {
+            //calls function after delay; time in milliseconds
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-            this.add.text(game.config.width/2, game.config.height/2 + 64, '(F)ire to Restart', scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, '(F)ire to Restart or ← for Menu', scoreConfig).setOrigin(0.5);
             this.gameOver = true; //turns on game over
         },
         null, //callback
@@ -78,9 +81,13 @@ class Play extends Phaser.Scene {
     }
 
     update () {
-        //check key input for restart
+        //key input for restart
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyF)) {
             this.scene.restart(this.p1Score);
+        }
+        //key input for return to menu
+        if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
+            this.scene.start("menuScene");
         }
 
         // scroll tile sprite
@@ -130,15 +137,20 @@ class Play extends Phaser.Scene {
 
         //create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
-        boom.anims.play('explode'); // play explode animation: calls key
-        boom.on('animationcomplete', () => { //callback after animation completes
-            ship.reset(); //reset ship position
-            ship.alpha = 1; //make ship visible again
-            boom.destroy(); //remove explosion sprite
-        });
+            boom.anims.play('explode'); // play explode animation: calls key
+            boom.on('animationcomplete', () => { //callback after animation completes
+                ship.reset(); //reset ship position
+                ship.alpha = 1; //make ship visible again
+                boom.destroy(); //remove explosion sprite
+            }
+        );
+
         //increment score
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
+
+        //explosion sound
+        this.sound.play('sfx_explosion');
     }
 
 }
