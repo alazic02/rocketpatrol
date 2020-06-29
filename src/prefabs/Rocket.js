@@ -11,7 +11,7 @@ class Rocket extends Phaser.GameObjects.Sprite {
     }
 
     update() {
-        // left/right movement
+        // left/right movement; movement locked when it IS fired
         if(!this.isFiring) {
             if(keyLEFT.isDown && this.x >= 47) {
                 this.x -= 2;
@@ -19,9 +19,11 @@ class Rocket extends Phaser.GameObjects.Sprite {
             else if (keyRIGHT.isDown && this.x <= 578) {
                 this.x += 2;
             }
+        // isDown registers input every frame
         }
         //fire button
         if(Phaser.Input.Keyboard.JustDown(keyF)) {
+        //justDown registers individual clicks
             this.isFiring = true;
         }
         // if fired, move up

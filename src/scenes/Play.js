@@ -5,9 +5,12 @@ class Play extends Phaser.Scene {
 
     preload () {
         // load images/tile sprites
-        this.load.image('rocket', './assets/rocket.png');
-        this.load.image('spaceship', './assets/spaceship.png');
-        this.load.image('starfield', './assets/starfield.png');
+        this.load.image('rocket', './assets/rocket.png'); //rocket
+        this.load.image('spaceship', './assets/spaceship.png'); //spaceships
+        this.load.image('starfield', './assets/starfield.png'); //starfield bg
+       
+        this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9}); //explosion animation; {} part = frame configuration object: tells Phaser number of frames (here 0-9), pixel height+width
+
     }
 
     create () {
@@ -34,6 +37,30 @@ class Play extends Phaser.Scene {
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
         keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+
+        //animation configuration
+        this.anims.create( {
+            key: 'explode',
+            frames: this.anims.generateFrameNumbers('explosion', {start: 0, end: 9, first: 0}),
+            frameRate: 30
+        });
+
+        //score
+        this.p1Score = 0;
+        //score display
+        let scoreConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            backgroundColor: '#F3B141',
+            color: '#843605',
+            align: 'right',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 100
+        }
+        this.scoreLeft = this.add.text(69, 54, this.p1Score, scoreConfig);
     }
 
     update () {
@@ -48,18 +75,18 @@ class Play extends Phaser.Scene {
         this.ship02.update();
         this.ship03.update();
 
-        //check collision
+        //check collision + reset
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
             this.p1Rocket.reset();
-            this.ship03.reset();
+            this.shipExplode(this.ship03);
         }
         if(this.checkCollision(this.p1Rocket, this.ship02)) {
             this.p1Rocket.reset();
-            this.ship02.reset();
+            this.shipExplode(this.ship02);
         }
         if(this.checkCollision(this.p1Rocket, this.ship01)) {
             this.p1Rocket.reset();
-            this.ship01.reset();
+            this.shipExplode(this.ship01);
         }
     }
 
@@ -74,6 +101,19 @@ class Play extends Phaser.Scene {
         else {
             return false;
         }
+    }
+
+    shipExplode(ship) {
+        ship.alpha = 0; //temporarily hide ship (opacity set to 0)
+
+        //create explosion sprite at ship's position
+        let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0, 0);
+        boom.anims.play('explode'); // play explode animation: calls key
+        boom.on('animationcomplete', () => { //callback after animation completes
+            ship.reset(); //reset ship position
+            ship.alpha = 1; //make ship visible again
+            boom.destroy(); //remove explosion sprite
+        });
     }
 
 }
