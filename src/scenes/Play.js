@@ -47,7 +47,7 @@ class Play extends Phaser.Scene {
 
         //score
         this.p1Score = 0;
-        //score display
+        //text display
         let scoreConfig = {
             fontFamily: 'Courier',
             fontSize: '28px',
@@ -62,20 +62,40 @@ class Play extends Phaser.Scene {
         }
         this.scoreLeft = this.add.text(69, 54, this.p1Score, scoreConfig);
 
-        
+        //game over flag
+        this.gameOver = false;
+
+        //60-second play clock
+        scoreConfig.fixedWidth = 0;
+        this.clock = this.time.delayedCall(60000, () => { //calls function after delay; time in milliseconds
+            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, '(F)ire to Restart', scoreConfig).setOrigin(0.5);
+            this.gameOver = true; //turns on game over
+        },
+        null, //callback
+        this, //callback context; here means Play scene
+        );
     }
 
     update () {
+        //check key input for restart
+        if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyF)) {
+            this.scene.restart(this.p1Score);
+        }
+
         // scroll tile sprite
         this.starfield.tilePositionX -= 4;
 
-        //update rocket
-        this.p1Rocket.update();
+        //allows rocket/ship movement only when NOT game over
+        if (!this.gameOver) {
+            //update rocket
+            this.p1Rocket.update();
 
-        //update spaceships
-        this.ship01.update();
-        this.ship02.update();
-        this.ship03.update();
+            //update spaceships
+            this.ship01.update();
+            this.ship02.update();
+            this.ship03.update();
+        }
 
         //check collision + reset
         if(this.checkCollision(this.p1Rocket, this.ship03)) {
